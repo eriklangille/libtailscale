@@ -679,6 +679,26 @@ func TsnetStatusJSON(sd C.int, jsonOut **C.char) C.int {
 	return 0
 }
 
+//export TsnetNetworkChanged
+func TsnetNetworkChanged(sd C.int) C.int {
+	s := getServer(sd)
+	if s == nil {
+		return C.EBADF
+	}
+	sys := s.s.Sys()
+	if sys == nil {
+		return 0 // not started yet: it reads the network when it starts
+	}
+	// On iOS the network monitor's route socket can die while the process
+	// is suspended ("socket is not connected" on every read), after which
+	// it never notices a change again and keeps binding to an interface
+	// that's gone. The app watches the network itself and passes it on.
+	if nm, ok := sys.NetMon.GetOK(); ok {
+		nm.InjectEvent()
+	}
+	return 0
+}
+
 //export TsnetEnableFunnelToLocalhostPlaintextHttp1
 func TsnetEnableFunnelToLocalhostPlaintextHttp1(sd C.int, localhostPort C.int) C.int {
 	s := getServer(sd)

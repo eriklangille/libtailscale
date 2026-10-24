@@ -198,6 +198,19 @@ extern int tailscale_loopback(tailscale sd, char* addr_out, size_t addrlen, char
 // 	-1    - call tailscale_errmsg for details (*json_out is NULL)
 extern int tailscale_status_json(tailscale sd, char** json_out);
 
+// tailscale_network_changed tells sd that the device's network may have
+// changed, so it re-reads the interfaces and rebinds to the current one.
+//
+// tsnet watches the routing table itself, but on iOS that watch can stop
+// working while the app is suspended. Apps that watch the network
+// themselves (NWPathMonitor) can call this on every change. A no-op before
+// the server has started.
+//
+// Returns:
+// 	0     - success
+// 	EBADF - sd is not a valid tailscale
+extern int tailscale_network_changed(tailscale sd);
+
 // tailscale_errmsg writes the details of the last error to buf.
 //
 // After returning, buf is always NUL-terminated.

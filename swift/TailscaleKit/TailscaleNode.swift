@@ -164,6 +164,26 @@ public actor TailscaleNode {
         return Data(bytes: out, count: strlen(out))
     }
 
+    /// Tells the node the device's network may have changed, so it re-reads the
+    /// interfaces and rebinds to the current one. On iOS, call it from an
+    /// NWPathMonitor update: tsnet's own watch can stop working while the app is
+    /// suspended.
+    ///
+    /// @See tailscale_network_changed in Tailscale.h
+    ///
+    /// @throws TailscaleError on failure
+    public func networkChanged() throws {
+        guard let tailscale else {
+            throw TailscaleError.badInterfaceHandle
+        }
+
+        let res = tailscale_network_changed(tailscale)
+
+        guard res == 0 else {
+            throw TailscaleError.fromPosixErrCode(res, tailscale.getErrorMessage())
+        }
+    }
+
     /// Tears down the Tailscale server.
     ///
     /// @See tailscale_down in Tailscale.h
