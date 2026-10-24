@@ -699,6 +699,50 @@ func TsnetNetworkChanged(sd C.int) C.int {
 	return 0
 }
 
+//export TsnetSuspend
+func TsnetSuspend(sd C.int) C.int {
+	s := getServer(sd)
+	if s == nil {
+		return C.EBADF
+	}
+	sys := s.s.Sys()
+	if sys == nil {
+		return 0
+	}
+	// A suspended process doesn't read its DERP connections, so what peers send
+	// meanwhile queues there, including the WireGuard handshake initiations a
+	// peer retries every 5s. On resume the oldest is answered, which voids our
+	// own handshake, and the 5s wait after sending a response stalls the next
+	// one. Taking the network down closes every DERP connection and keeps them
+	// closed, so the relay drops what peers send instead.
+	//
+	// Sends fail until TsnetResume, and a handshake that fails to go out waits
+	// 5s too, so it must run before anything sends on resume. (Homeless mode
+	// lets sends through but forgets the home region: finding it again takes a
+	// netcheck, ~250ms, and peers' answers through it are dropped meanwhile.)
+	if mc, ok := sys.MagicSock.GetOK(); ok {
+		mc.SetNetworkUp(false)
+	}
+	return 0
+}
+
+//export TsnetResume
+func TsnetResume(sd C.int) C.int {
+	s := getServer(sd)
+	if s == nil {
+		return C.EBADF
+	}
+	sys := s.s.Sys()
+	if sys == nil {
+		return 0
+	}
+	// Connects to the home region again, right away.
+	if mc, ok := sys.MagicSock.GetOK(); ok {
+		mc.SetNetworkUp(true)
+	}
+	return 0
+}
+
 //export TsnetEnableFunnelToLocalhostPlaintextHttp1
 func TsnetEnableFunnelToLocalhostPlaintextHttp1(sd C.int, localhostPort C.int) C.int {
 	s := getServer(sd)

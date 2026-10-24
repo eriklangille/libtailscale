@@ -204,6 +204,25 @@ extern int tailscale_status_json(tailscale sd, char** json_out);
 // 	EBADF - sd is not a valid tailscale
 extern int tailscale_network_changed(tailscale sd);
 
+// tailscale_suspend prepares sd for its process being suspended (an iOS app
+// about to be): it closes sd's DERP connections and keeps them closed, so what
+// peers send meanwhile is dropped instead of queued, and stale WireGuard
+// handshakes don't stall the next one on resume. Until tailscale_resume, peers
+// can't reach sd and its sends fail: call that first thing on resume.
+//
+// Returns:
+// 	0     - success
+// 	EBADF - sd is not a valid tailscale
+extern int tailscale_suspend(tailscale sd);
+
+// tailscale_resume undoes tailscale_suspend: sd connects to its home DERP
+// region again.
+//
+// Returns:
+// 	0     - success
+// 	EBADF - sd is not a valid tailscale
+extern int tailscale_resume(tailscale sd);
+
 // tailscale_enable_funnel_to_localhost_plaintext_http1 configures sd to have
 // Tailscale Funnel enabled, routing requests from the public web
 // (without any authentication) down to this Tailscale node, requesting new 

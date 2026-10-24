@@ -26,6 +26,8 @@ extern int TsnetAccept(int ld, int* connOut);
 extern int TsnetLoopback(int sd, char* addrOut, size_t addrLen, char* proxyOut, char* localOut);
 extern int TsnetStatusJSON(int sd, char** jsonOut);
 extern int TsnetNetworkChanged(int sd);
+extern int TsnetSuspend(int sd);
+extern int TsnetResume(int sd);
 extern int TsnetEnableFunnelToLocalhostPlaintextHttp1(int sd, int localhostPort);
 
 tailscale tailscale_new() {
@@ -93,6 +95,14 @@ int tailscale_status_json(tailscale sd, char** json_out) {
 
 int tailscale_network_changed(tailscale sd) {
 	return TsnetNetworkChanged(sd);
+}
+
+int tailscale_suspend(tailscale sd) {
+	return TsnetSuspend(sd);
+}
+
+int tailscale_resume(tailscale sd) {
+	return TsnetResume(sd);
 }
 
 int tailscale_errmsg(tailscale sd, char* buf, size_t buflen) {

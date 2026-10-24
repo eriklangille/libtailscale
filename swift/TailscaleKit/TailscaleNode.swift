@@ -184,6 +184,42 @@ public actor TailscaleNode {
         }
     }
 
+    /// Prepares the node for the app being suspended: it leaves the DERP relays until
+    /// `resume()`, so what peers send meanwhile is dropped instead of queued. Its sends
+    /// fail until then: call `resume()` first thing on resume.
+    ///
+    /// @See tailscale_suspend in Tailscale.h
+    ///
+    /// @throws TailscaleError on failure
+    public func suspend() throws {
+        guard let tailscale else {
+            throw TailscaleError.badInterfaceHandle
+        }
+
+        let res = tailscale_suspend(tailscale)
+
+        guard res == 0 else {
+            throw TailscaleError.fromPosixErrCode(res, tailscale.getErrorMessage())
+        }
+    }
+
+    /// Undoes `suspend()`: the node connects to its home DERP region again, right away.
+    ///
+    /// @See tailscale_resume in Tailscale.h
+    ///
+    /// @throws TailscaleError on failure
+    public func resume() throws {
+        guard let tailscale else {
+            throw TailscaleError.badInterfaceHandle
+        }
+
+        let res = tailscale_resume(tailscale)
+
+        guard res == 0 else {
+            throw TailscaleError.fromPosixErrCode(res, tailscale.getErrorMessage())
+        }
+    }
+
     /// Tears down the Tailscale server.
     ///
     /// @See tailscale_down in Tailscale.h
