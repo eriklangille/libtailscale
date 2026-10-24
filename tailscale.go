@@ -576,6 +576,19 @@ func TsnetSetEphemeral(sd C.int, e int) C.int {
 	return 0
 }
 
+//export TsnetSetPort
+func TsnetSetPort(sd C.int, port C.int) C.int {
+	s := getServer(sd)
+	if s == nil {
+		return C.EBADF
+	}
+	if port < 0 || port > 65535 {
+		return s.recErr(fmt.Errorf("invalid port %d", port))
+	}
+	s.s.Port = uint16(port)
+	return 0
+}
+
 //export TsnetSetLogFD
 func TsnetSetLogFD(sd, fd C.int) C.int {
 	s := getServer(sd)

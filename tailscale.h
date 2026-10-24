@@ -68,6 +68,12 @@ extern int tailscale_set_authkey(tailscale sd, const char* authkey);
 extern int tailscale_set_control_url(tailscale sd, const char* control_url);
 extern int tailscale_set_ephemeral(tailscale sd, int ephemeral);
 
+// tailscale_set_port sets the UDP port for WireGuard and peer-to-peer traffic
+// (tsnet.Server.Port; 0, the default, picks one). An app that restarts often
+// keeps its peers' direct path to it by using the same port every time: a
+// peer that heard from the old process seconds ago answers there.
+extern int tailscale_set_port(tailscale sd, int port);
+
 // tailscale_set_logfd instructs the tailscale instance to write logs to fd.
 //
 // An fd value of -1 means discard all logging.

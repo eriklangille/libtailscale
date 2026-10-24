@@ -13,18 +13,21 @@ public struct Configuration: Sendable {
     public let authKey: String?    ///< An auth key.  Leave empty to use web auth
     public let controlURL: String  ///< URL for Tailscale control
     public let ephemeral: Bool
+    public let port: UInt16        ///< UDP port for WireGuard; 0 picks one. See tailscale_set_port
 
     public init(hostName: String,
                 path: String,
                 authKey: String?,
                 controlURL: String,
-                ephemeral: Bool = false)
+                ephemeral: Bool = false,
+                port: UInt16 = 0)
     {
         self.hostName = hostName
         self.path = path
         self.authKey = authKey
         self.controlURL = controlURL
         self.ephemeral = ephemeral
+        self.port = port
     }
 
 }
@@ -82,6 +85,7 @@ public actor TailscaleNode {
         tailscale_set_dir(tailscale, config.path)
         tailscale_set_control_url(tailscale, config.controlURL)
         tailscale_set_ephemeral(tailscale, config.ephemeral ? 1 : 0)
+        tailscale_set_port(tailscale, Int32(config.port))
 
         let res = tailscale_start(tailscale)
 
